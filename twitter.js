@@ -10,12 +10,12 @@ async function getTweets() {
   });
   
   const params = {
-    q: 'BBC*',
+    q: 'BBC* -from:BBc*',
     lang: 'en',
-    count: 20
+    count: 5
   };
   tweets = await client.get('search/tweets', params) 
-  .then(function(tweets) {
+  .then(tweets => {
     return tweets;
   });
   return tweets;
