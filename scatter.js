@@ -1,13 +1,13 @@
 plotScatter = (d3, data) => {
   let width = window.innerWidth,
      height = window.innerHeight;
-  // var data    = [], min = max = 50;
+  let min = max = 30;
   let sentiments = [];
   data.map(d => {
     sentiments.push(d.x)
   });
-  let min = Math.min(parseFloat(sentiments));
-  let max = Math.max(parseFloat(sentiments));
+  // let min = Math.min(parseFloat(sentiments));
+  // let max = Math.max(parseFloat(sentiments));
   let origin  = [480, 250], startAngle = Math.PI/8, beta = startAngle;
   let svg     = d3.select('svg').call(d3.drag().on('drag', dragged).on('start', dragStart).on('end', dragEnd)).append('g');
   svg.attr({
@@ -69,7 +69,8 @@ plotScatter = (d3, data) => {
           .append('circle')
           .merge(points)
           // .attr('fill', function(d, i){ return color(i); })
-          .attr('fill', (d, i) => { return getColor(d.sentiment); })
+          .attr('fill', d => { return getColor(d.sentiment); })
+          .attr('class', d => { return getColor(d.sentiment); })
           // .attr('stroke', function(d, i){ return d3.color(color(i)).darker(0.5); })
           .sort(function(a, b){ return d3.descending(a.rotated.z, b.rotated.z); })
           .attr('cx', function(d){ return d.projected.x; })
@@ -125,8 +126,31 @@ plotScatter = (d3, data) => {
     } else if (score < 0 || score === 'negative') {
       return 'red';
     } else {
-      return '#ffe13d';
+      // return '#ffe13d';
+      return 'yellow';
     }
+  }
+
+  function focus(color) {
+    // let orgOpacity = d3.selectAll('.'+color).style('opacity');
+    // let opacity = orgOpacity === '1' ? '0' : '1';
+
+    // console.log('org opacity', orgOpacity)
+    // console.log('opacity', opacity)
+
+    // d3.selectAll('circle')
+    // .style('opacity', orgOpacity);
+    // d3.selectAll('.'+color)
+    // .style('opacity', opacity);
+    d3.selectAll('circle')
+    .style('opacity', 0);
+    d3.selectAll('.'+color)
+    .style('opacity', 1);
+  }
+
+  function unfocus(color) {
+    d3.selectAll('circle')
+    .style('opacity', 1);
   }
 
   var legend = svg.append('g')
@@ -138,7 +162,7 @@ plotScatter = (d3, data) => {
   .selectAll("g")
   .data(['positive', 'neutral', 'negative'])
   .enter().append("g")
-  .attr("transform", function(d, i) { return "translate(75," + i * 20 + ")"; });
+  .attr("transform", (d, i) => { return "translate(75," + i * 20 + ")"; });
 
   legend.append('rect')
   // .attr('cx', 960 - 150)
@@ -152,6 +176,9 @@ plotScatter = (d3, data) => {
   .attr('width', 18)
   .attr('height', 18)
   .attr('fill', d => { return getColor(d) })
+  .on('mouseover', d => { return focus(getColor(d)) })
+  .on('mouseout', d => { return unfocus(getColor(d)) })
+  // .on('click', d => { return focus(getColor(d)) })
 
   legend.append('text')
   .attr('x', 960 - 170)
