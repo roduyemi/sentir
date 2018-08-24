@@ -10,15 +10,17 @@ getSentiment = async () => {
   .then(async tweets => {
     for (status of tweets.statuses) {
       await callSentimentApi(status.text)
-      .then(sentiment => {
+      .then(async sentiment => {
         const score = sentiment.sentiment;
         const magnitude = sentiment.magnitude;
+        // const id = await getTwitterJson(status.id_str).then(json => { return json; })
         allSentiments.push({
           sentiment: score,
           magnitude,
           x: Math.round(score * 100),
           y: Math.round(magnitude * 100),
-          text: status.text
+          text: status.text,
+          id: status.id_str
         });
         return allSentiments;
       });
@@ -38,6 +40,20 @@ callSentimentApi = (status) => {
   });
   return new Promise((resolve, reject) => {
     data ? resolve(data) : reject('no data');
+  });
+}
+
+getTwitterJson = (id) => {
+  const json = axios.get(`https://publish.twitter.com/oembed?url=https://twitter.com/Interior/status/${encodeURIComponent(id)}`)
+  .then(response => {
+    const data = response.data.html;
+    return data;
+  })
+  .catch(error => {
+    console.log(error);
+  })
+  return new Promise((resolve, reject) => {
+    json ? resolve(json) : reject('no data');
   });
 }
 

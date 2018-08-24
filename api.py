@@ -1,6 +1,9 @@
-import sys, flask
+import sys, flask, logging
 from textblob import TextBlob
 from flask import request, jsonify
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = False

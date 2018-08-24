@@ -3,10 +3,18 @@ plotScatter = (d3, data) => {
      height = window.innerHeight;
   let min = max = 45;
   let sentiments = [];
+  let polarity = { 'positive' : 0, 'neutral' : 0, 'negative' : 0};
   data.map(d => {
     sentiments.push(d.x)
+    const sentiment = d.sentiment
+    if (sentiment > 0)
+        polarity.positive += 1
+    else if (sentiment < 0)
+      polarity.negative += 1
+    else
+      polarity.neutral += 1
   });
-  let origin  = [470, 300], startAngle = Math.PI/8, beta = startAngle;
+  let origin  = [width / 2, height / 2], startAngle = Math.PI/8, beta = startAngle;
   let svg     = d3.select('body')
                 .append('svg')
                 .attr('width', width)
@@ -15,8 +23,7 @@ plotScatter = (d3, data) => {
   let color   = d3.scaleOrdinal(d3.schemeCategory10);
   let rn      = (min, max) => { return Math.round(d3.randomUniform(min, max + 1)()); };
   let mx, my, mouseX, mouseY;
-  let rotate = [-.0001, -0.0001],
-  velocity = [.0005, 0],
+  let rotate = [.0001, -.0001],
   time = Date.now(),
   timer;
 
@@ -31,6 +38,10 @@ plotScatter = (d3, data) => {
 
   let div = d3.select('body').append('div')	
             .attr('class', 'tooltip')
+
+  let info = d3.select('body')
+            .append('div')
+            .attr('class', 'info')
 
   let _3d = d3._3d()
       .scale(5)
@@ -67,30 +78,26 @@ plotScatter = (d3, data) => {
     points
       .enter()
       .append('circle')
+      .on('click', d => {
+        return window.open(`https://twitter.com/Interior/status/${d.id}`, '_blank');
+      })
       .merge(points)
-      // .attr('fill', function(d, i){ return color(i); })
       .attr('fill', d => { return getColor(d.sentiment); })
-      .attr('class', d => { return getColor(d.sentiment); })
-      // .attr('stroke', function(d, i){ return d3.color(color(i)).darker(0.5); })
+      .attr('class', d => { return getColor(d.sentiment).replace(/#/, ''); })
       .sort((a, b) => { return d3.descending(a.rotated.z, b.rotated.z); })
       .attr('cx', d => { return d.projected.x; })
       .attr('cy', d => { return d.projected.y; })
       .attr('r' , d => { return zScale(d.rotated.z); })
       .on('mouseover', handleMouseOver)
-      .on('mouseout', handleMouseOut);
+      .on('mouseout', handleMouseOut)
     points.exit().remove();
   }
 
 
   function rotatePlot() {
     timer = d3.timer(() => {
-      
       let dt = Date.now() - time;
-      // svg.selectAll('circle').attr('transform', `rotate(${rotate[0] + velocity[0] * dt}, 470, 300)`);
-      // points.rotate([rotate[0] + velocity[0] * dt, rotate[1] + velocity[1] * dt]);
-      // processData(_3d.rotateX(rotate[0] * dt)(data));
       processData(_3d.rotateY(rotate[1] * dt / 2)(data));
-      // dragStart();
     });
   }
 
@@ -110,15 +117,18 @@ plotScatter = (d3, data) => {
         x: () => { return xScale(d.x) - 30; },
         y: () => { return yScale(d.y) - 15; }
     })
-
+    
     div.transition()		
       .duration(200)		
-      .style('opacity', .75);		
+      .style('opacity', .75)
+      .attr('fill', 'none')		
     div
-      .html(d['sentiment'] + '<br/>' + d['text'])
+      .html(
+        `<div class='sentiment'>${d.sentiment}</div>
+        <div class='text'>${d.text}</div>`
+      )
       .style('left', (d3.event.pageX) + 'px')		
-      .style('top', (d3.event.pageY - 28) + 'px');
-
+      .style('top', (d3.event.pageY - 28) + 'px')
     stopRotatePlot();
   }
 
@@ -144,31 +154,49 @@ plotScatter = (d3, data) => {
     } else if (score < 0 || score === 'negative') {
       return 'red';
     } else {
-      // return '#ffe13d';
-      return 'yellow';
+      return '#ffe13d';
+      // return 'yellow';
+    }
+  }
+
+  function getPolarity(color) {
+    switch(color) {
+      case 'green' :
+        return 'positive';
+      case 'ffe13d' :
+        return 'neutral'
+      case 'red' :
+        return 'negative';
     }
   }
 
   function focus(color) {
-    // let orgOpacity = d3.selectAll('.'+color).style('opacity');
-    // let opacity = orgOpacity === '1' ? '0' : '1';
-
-    // console.log('org opacity', orgOpacity)
-    // console.log('opacity', opacity)
-
-    // d3.selectAll('circle')
-    // .style('opacity', orgOpacity);
-    // d3.selectAll('.'+color)
-    // .style('opacity', opacity);
+    stopRotatePlot();
+    const pole = getPolarity(color)
     d3.selectAll('circle')
     .style('opacity', 0);
     d3.selectAll('.' + color)
     .style('opacity', 1);
+
+    info.transition()		
+      .duration(200)		
+      .style('opacity', .75)
+      .attr('fill', 'black')
+    
+    info
+      .html(`${pole} ${polarity[pole]}`)
+      .style('left', '10px')		
+      .style('top', '10px')
   }
 
   function unfocus(color) {
     d3.selectAll('circle')
     .style('opacity', 1);
+
+    info.transition()		
+      .duration(500)		
+      .style('opacity', 0);
+    rotatePlot();
   }
 
   let legend = svg.append('g')
@@ -183,27 +211,18 @@ plotScatter = (d3, data) => {
   .attr('transform', (d, i) => { return 'translate(75,' + i * 20 + ')'; });
 
   legend.append('rect')
-  // .attr('cx', 960 - 150)
-  // .attr('cy', 10)
-  // .attr('r', 5)
-  // // .style('fill', d => { return getColor(d) })
-  // .style('fill', 'none')
-  // .attr('stroke-width', 2)
-  // .attr('stroke', d => { return getColor(d) })
-  .attr('x', width - 150)
+  .attr('x', width - 110)
   .attr('width', 18)
   .attr('height', 18)
   .attr('fill', d => { return getColor(d) })
-  .on('mouseover', d => { return focus(getColor(d)) })
+  .on('mouseover', d => { return focus(getColor(d).replace(/#/, '')) })
   .on('mouseout', d => { return unfocus(getColor(d)) })
-  // .on('click', d => { return focus(getColor(d)) })
 
   legend.append('text')
-  .attr('x', width - 170)
+  .attr('x', width - 130)
   .attr('y', 9.5)
   .attr('dy', '0.32em')
   .text(function(d) { return d; });
 
-  // processData(data3D);
   rotatePlot();
 }
