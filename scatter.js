@@ -184,7 +184,7 @@ plotScatter = (d3, data) => {
       .attr('fill', 'black')
     
     info
-      .html(`${pole} ${polarity[pole]}`)
+      .html(`${pole}: ${polarity[pole]}`)
       .style('left', '10px')		
       .style('top', '10px')
   }
