@@ -15,8 +15,12 @@ plotScatter = (d3, data) => {
   let color   = d3.scaleOrdinal(d3.schemeCategory10);
   let rn      = (min, max) => { return Math.round(d3.randomUniform(min, max + 1)()); };
   let mx, my, mouseX, mouseY;
+  let rotate = [-.0001, -0.0001],
+  velocity = [.0005, 0],
+  time = Date.now(),
+  timer;
 
-  for (var i = sentiments.length; i >= 0; i--) {
+  for (let i = sentiments.length; i >= 0; i--) {
     data[i] = ({
         ...data[i],
         x: rn(-min, max),
@@ -28,16 +32,16 @@ plotScatter = (d3, data) => {
   let div = d3.select('body').append('div')	
             .attr('class', 'tooltip')
 
-  var _3d = d3._3d()
+  let _3d = d3._3d()
       .scale(5)
       .origin(origin)
       .rotateX(startAngle)
       .rotateY(startAngle)
       .primitiveType('POINTS');
 
-  var data3D  = _3d(data);
-  var extentZ = d3.extent(data3D, d => { return d.rotated.z });
-  var zScale  = d3.scaleLinear().domain([extentZ[1]+10, extentZ[0]-10]).range([1, 8]);
+  let data3D  = _3d(data);
+  let extentZ = d3.extent(data3D, d => { return d.rotated.z });
+  let zScale  = d3.scaleLinear().domain([extentZ[1]+10, extentZ[0]-10]).range([1, 8]);
 
   function dragStart() {
     mx = d3.event.x;
@@ -51,7 +55,6 @@ plotScatter = (d3, data) => {
     theta = (d3.event.y - my + mouseY) * Math.PI / 360 * (-1);
     processData(_3d.rotateX(theta + startAngle)(data));
     processData(_3d.rotateY(beta + startAngle)(data));
-      
   }
 
   function dragEnd() {
@@ -59,8 +62,8 @@ plotScatter = (d3, data) => {
     mouseY = d3.event.y - my + mouseY;
   }
 
-  function processData(data){
-    var points = svg.selectAll('circle').data(data);
+  function processData(data) {
+    let points = svg.selectAll('circle').data(data);
     points
       .enter()
       .append('circle')
@@ -75,7 +78,24 @@ plotScatter = (d3, data) => {
       .attr('r' , d => { return zScale(d.rotated.z); })
       .on('mouseover', handleMouseOver)
       .on('mouseout', handleMouseOut);
-      points.exit().remove();
+    points.exit().remove();
+  }
+
+
+  function rotatePlot() {
+    timer = d3.timer(() => {
+      
+      let dt = Date.now() - time;
+      // svg.selectAll('circle').attr('transform', `rotate(${rotate[0] + velocity[0] * dt}, 470, 300)`);
+      // points.rotate([rotate[0] + velocity[0] * dt, rotate[1] + velocity[1] * dt]);
+      // processData(_3d.rotateX(rotate[0] * dt)(data));
+      processData(_3d.rotateY(rotate[1] * dt / 2)(data));
+      // dragStart();
+    });
+  }
+
+  function stopRotatePlot() {
+    timer.stop();
   }
 
   function handleMouseOver(d, i) {
@@ -98,6 +118,8 @@ plotScatter = (d3, data) => {
       .html(d['sentiment'] + '<br/>' + d['text'])
       .style('left', (d3.event.pageX) + 'px')		
       .style('top', (d3.event.pageY - 28) + 'px');
+
+    stopRotatePlot();
   }
 
   function handleMouseOut(d, i) {
@@ -111,7 +133,9 @@ plotScatter = (d3, data) => {
 
     div.transition()		
     .duration(500)		
-    .style('opacity', 0);  
+    .style('opacity', 0);
+
+    rotatePlot();
   }
 
   function getColor(score) {
@@ -147,7 +171,7 @@ plotScatter = (d3, data) => {
     .style('opacity', 1);
   }
 
-  var legend = svg.append('g')
+  let legend = svg.append('g')
   .style('font-family', 'Lato, Helvetica Neue, Helvetica, Arial, sans-serif')
   .style('font-size', '14px')
   .style('font-weight','bold')
@@ -180,5 +204,6 @@ plotScatter = (d3, data) => {
   .attr('dy', '0.32em')
   .text(function(d) { return d; });
 
-  processData(data3D);
+  // processData(data3D);
+  rotatePlot();
 }
