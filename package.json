@@ -10,7 +10,7 @@
   "author": "Remi",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/language": "^1.2.0",
+    "@google-cloud/language": "^4.0.0",
     "await-spawn": "^2.1.1",
     "child-process-async": "^1.0.1",
     "concurrently": "^3.6.1",
