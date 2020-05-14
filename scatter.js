@@ -1,3 +1,4 @@
+// https://bl.ocks.org/niekes/d8007a5f71f45ab80a2977a8eb7ab3c9
 plotScatter = (d3, data) => {
   let width = window.innerWidth,
      height = window.innerHeight;
@@ -108,7 +109,7 @@ plotScatter = (d3, data) => {
   function handleMouseOver(d, i) {
     const radius = d3.select(this).attr('r');
     d3.select(this)
-      .attr('fill', 'orange')
+      // .attr('fill', 'orange')
       .attr('opacity', 0.5)
       .attr('r', radius * 1.5)
 
@@ -135,7 +136,7 @@ plotScatter = (d3, data) => {
   function handleMouseOut(d, i) {
     const radius = d3.select(this).attr('r');
     d3.select(this)
-      .attr('fill', d => { return getColor(d.sentiment); })
+      // .attr('fill', d => { return getColor(d.sentiment); })
       .attr('opacity', 1)
       .attr('r', radius / 1.5)
 
