@@ -12,14 +12,13 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 ### Install node modules
-Use nvm to switch to node v8.
+Use nvm to switch to node v12.
 ```sh
 nvm use 12
 npm install
 ```
 
 ### Start app
-Use nvm to switch to node v8.
 ```sh
 npm start
 ```

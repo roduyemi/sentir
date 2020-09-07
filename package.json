@@ -10,8 +10,8 @@
   "author": "Remi",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/language": "^4.0.0",
-    "await-spawn": "^2.1.1",
+    "@google-cloud/language": "^4.1.0",
+    "await-spawn": "^4.0.1",
     "child-process-async": "^1.0.1",
     "concurrently": "^3.6.1",
     "dotenv": "^6.0.0",

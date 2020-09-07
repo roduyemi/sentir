@@ -28,7 +28,7 @@ plotScatter = (d3, data) => {
   time = Date.now(),
   timer;
 
-  for (let i = sentiments.length; i >= 0; i--) {
+  for (let i = sentiments.length-1; i >= 0; i--) {
     data[i] = ({
         ...data[i],
         x: rn(-min, max),
